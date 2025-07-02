@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots  # Added missing import
 import io
 import base64
 from wordcloud import WordCloud, STOPWORDS
@@ -117,6 +118,7 @@ def plot_content_ratio(df):
         textinfo='percent+label',
         pull=[0.05 if t == "Movie" else 0 for t in content_counts['Type']],
         marker=dict(line=dict(color='#FFFFFF', width=2))
+    )
     
     fig.update_layout(
         title='🎬 Distribuição de Conteúdo',
@@ -155,6 +157,7 @@ def plot_country_distribution(df, top_n=10):
         template='plotly_white',
         plot_bgcolor='rgba(0,0,0,0)',
         yaxis=dict(tickfont=dict(size=12))
+    )
     return fig
 
 def plot_content_timeline(df):
@@ -240,7 +243,7 @@ def plot_release_vs_addition(df, content_type='Movie'):
     
     for idx, row in df_avg.iterrows():
         fig.add_trace(go.Scatter(
-            x=[row['release_year'], 
+            x=[row['release_year']],
             y=[idx],
             mode='markers+text',
             marker=dict(size=12, color=nflix_palette[0]),
@@ -250,7 +253,7 @@ def plot_release_vs_addition(df, content_type='Movie'):
         ))
         
         fig.add_trace(go.Scatter(
-            x=[row['year_added']], 
+            x=[row['year_added']],
             y=[idx],
             mode='markers+text',
             marker=dict(size=12, color=nflix_palette[1]),
@@ -283,6 +286,11 @@ def plot_release_vs_addition(df, content_type='Movie'):
         title=f'📅 {content_type}: Tempo Entre Lançamento e Adição',
         xaxis_title='Ano',
         yaxis_title='País',
+        yaxis=dict(
+            tickmode='array',
+            tickvals=list(range(len(df_avg))),
+            ticktext=df_avg.index.tolist()
+        ),
         height=600,
         template='plotly_white',
         legend=dict(
@@ -638,8 +646,8 @@ def update_dashboard(selected_type, selected_countries, year_range):
     fig3 = plot_country_distribution(dff)
     fig4 = plot_content_timeline(dff)
     fig5 = plot_target_ages_by_country(dff)
-    fig6 = plot_release_vs_addition(dff, 'Filmes')
-    fig7 = plot_release_vs_addition(dff, 'Séries')
+    fig6 = plot_release_vs_addition(dff, 'Movie')  # Corrected to 'Movie'
+    fig7 = plot_release_vs_addition(dff, 'TV Show')  # Corrected to 'TV Show'
     fig9 = plot_time_to_netflix(dff)
     
     # Wordcloud
