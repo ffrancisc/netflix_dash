@@ -15,13 +15,16 @@ from PIL import Image
 import os
 
 # --- Configurações ---
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
+app = dash.Dash(__name__, 
+                external_stylesheets=[dbc.themes.LUX],
+                meta_tags=[{'name': 'viewport', 
+                           'content': 'width=device-width, initial-scale=1.0'}])
 server = app.server
 
 # --- Paleta Netflix ---
 nflix_palette = ['#E50914', '#221F1F', '#B20710', '#F5F5F1']
 
-# --- Funções de pré-processamento (do notebook) ---
+# --- Funções de pré-processamento ---
 def clean_data(df):
     """Limpa e enriquece o DataFrame com features temporais e de conteúdo"""
     df_clean = df.copy()
@@ -62,9 +65,17 @@ def clean_data(df):
     # Duração
     df_clean['season_count'] = df_clean['duration'].str.extract(r'(\d+)').astype(float)
     
+    # Tempo entre lançamento e adição ao catálogo
+    df_clean['time_to_netflix'] = (df_clean['year_added'] - df_clean['release_year']).clip(lower=0)
+    
+    # Identificação de conteúdo exclusivo
+    df_clean['is_exclusive'] = df_clean['country'].apply(
+        lambda x: 'Netflix' in x if isinstance(x, str) else False
+    )
+    
     return df_clean
 
-# --- Funções de visualização (do notebook) ---
+# --- Funções de visualização ---
 def plot_content_over_time(df):
     data = df.groupby(['year_added', 'type']).size().reset_index(name='count')
     fig = px.area(
@@ -74,12 +85,18 @@ def plot_content_over_time(df):
         color='type',
         title='📈 Evolução de Títulos Adicionados por Tipo',
         color_discrete_sequence=nflix_palette,
-        labels={'year_added': 'Ano', 'count': 'Total de Títulos'}
+        labels={'year_added': 'Ano', 'count': 'Total de Títulos'},
+        template='plotly_white'
     )
-    fig.update_layout(template='plotly_dark')
+    fig.update_layout(
+        hovermode='x unified',
+        xaxis_title='Ano',
+        yaxis_title='Total de Títulos',
+        legend_title='Tipo'
+    )
     return fig
 
-def plot_advanced_content_ratio(df):
+def plot_content_ratio(df):
     content_counts = df['type'].value_counts().reset_index()
     content_counts.columns = ['Type', 'Count']
     content_counts['Percent'] = (content_counts['Count'] / content_counts['Count'].sum() * 100).round(1)
@@ -98,17 +115,17 @@ def plot_advanced_content_ratio(df):
     fig.update_traces(
         textposition='inside',
         textinfo='percent+label',
-        pull=[0.05 if t == "Movie" else 0 for t in content_counts['Type']]
-    )
+        pull=[0.05 if t == "Movie" else 0 for t in content_counts['Type']],
+        marker=dict(line=dict(color='#FFFFFF', width=2))
     
     fig.update_layout(
-        title='🎬 Netflix Content Distribution',
+        title='🎬 Distribuição de Conteúdo',
         showlegend=False,
-        template='plotly_dark'
+        template='plotly_white'
     )
     return fig
 
-def plot_advanced_country_distribution(df, top_n=10):
+def plot_country_distribution(df, top_n=10):
     country_counts = df['first_country'].value_counts().nlargest(top_n).sort_values(ascending=True)
     countries = country_counts.index.tolist()
     counts = country_counts.values.tolist()
@@ -133,13 +150,14 @@ def plot_advanced_country_distribution(df, top_n=10):
     )
     
     fig.update_layout(
-        title='🌍 Top Content-Producing Countries',
-        xaxis_title='Number of Titles',
-        template='plotly_dark'
-    )
+        title='🌍 Top Países Produtores de Conteúdo',
+        xaxis_title='Número de Títulos',
+        template='plotly_white',
+        plot_bgcolor='rgba(0,0,0,0)',
+        yaxis=dict(tickfont=dict(size=12))
     return fig
 
-def plot_advanced_content_timeline(df):
+def plot_content_timeline(df):
     timeline_data = df.groupby(['year_added', 'type'])['show_id'].count().unstack().fillna(0).sort_index().cumsum()
     years = timeline_data.index
     movies = timeline_data.get('Movie', pd.Series(index=years, data=0))
@@ -149,35 +167,45 @@ def plot_advanced_content_timeline(df):
     
     fig.add_trace(go.Scatter(
         x=years, y=movies,
-        mode='lines',
-        fill='tonexty',
-        name='Movies',
-        line=dict(color=nflix_palette[0])
+        mode='lines+markers',
+        fill='tozeroy',
+        name='Filmes',
+        line=dict(color=nflix_palette[0], width=3),
+        marker=dict(size=8)
     ))
     
     fig.add_trace(go.Scatter(
         x=years, y=tv_shows,
-        mode='lines',
-        fill='tonexty',
-        name='TV Shows',
-        line=dict(color=nflix_palette[1])
+        mode='lines+markers',
+        fill='tozeroy',
+        name='Séries',
+        line=dict(color=nflix_palette[1], width=3),
+        marker=dict(size=8)
     ))
     
     fig.add_vline(
         x=2016,
         line=dict(color='gray', dash='dot'),
-        annotation_text="🌍 Global Expansion"
+        annotation_text="🌍 Expansão Global"
     )
     
     fig.update_layout(
-        title='📊 Cumulative Netflix Content Over Time',
-        xaxis_title='Year',
-        yaxis_title='Total Content Added',
-        template='plotly_dark'
+        title='📊 Conteúdo Acumulado na Netflix',
+        xaxis_title='Ano',
+        yaxis_title='Total de Conteúdo Adicionado',
+        template='plotly_white',
+        hovermode='x unified',
+        legend=dict(
+            orientation='h',
+            yanchor='bottom',
+            y=1.02,
+            xanchor='right',
+            x=1
+        )
     )
     return fig
 
-def plot_interactive_target_ages_by_country(df):
+def plot_target_ages_by_country(df):
     top_countries = df['first_country'].value_counts().head(10).index.tolist()
     df_heatmap = df[df['first_country'].isin(top_countries)]
     heatmap_data = pd.crosstab(df_heatmap['target_age'], df_heatmap['first_country'], normalize='columns')
@@ -186,20 +214,22 @@ def plot_interactive_target_ages_by_country(df):
         z=heatmap_data.values,
         x=heatmap_data.columns,
         y=heatmap_data.index,
-        colorscale=[[0, nflix_palette[0]], [1, nflix_palette[1]]],
+        colorscale=[[0, '#ffffff'], [1, nflix_palette[0]]],
         zmin=0.05,
-        zmax=0.6
+        zmax=0.6,
+        hovertemplate='País: %{x}<br>Faixa Etária: %{y}<br>Proporção: %{z:.1%}<extra></extra>'
     ))
     
     fig.update_layout(
-        title='🎯 Target Age Demographics by Country',
-        xaxis_title='Country',
-        yaxis_title='Age Group',
-        template='plotly_dark'
+        title='🎯 Distribuição por Faixa Etária por País',
+        xaxis_title='País',
+        yaxis_title='Faixa Etária',
+        template='plotly_white',
+        height=500
     )
     return fig
 
-def plot_release_vs_addition_interactive(df, content_type='Movie'):
+def plot_release_vs_addition(df, content_type='Movie'):
     df_content = df[df['type'] == content_type]
     top_countries = df_content['first_country'].value_counts().head(10).index.tolist()
     df_top = df_content[df_content['first_country'].isin(top_countries)]
@@ -210,36 +240,105 @@ def plot_release_vs_addition_interactive(df, content_type='Movie'):
     
     for idx, row in df_avg.iterrows():
         fig.add_trace(go.Scatter(
+            x=[row['release_year'], 
+            y=[idx],
+            mode='markers+text',
+            marker=dict(size=12, color=nflix_palette[0]),
+            text=[f"Lanç: {int(row['release_year'])}"],
+            textposition='top center',
+            showlegend=False
+        ))
+        
+        fig.add_trace(go.Scatter(
+            x=[row['year_added']], 
+            y=[idx],
+            mode='markers+text',
+            marker=dict(size=12, color=nflix_palette[1]),
+            text=[f"Adição: {int(row['year_added'])}"],
+            textposition='top center',
+            showlegend=False
+        ))
+        
+        fig.add_trace(go.Scatter(
             x=[row['release_year'], row['year_added']],
             y=[idx, idx],
             mode='lines',
-            line=dict(color='gray', width=2),
+            line=dict(color='gray', width=2, dash='dash'),
             showlegend=False
         ))
     
     fig.add_trace(go.Scatter(
-        x=df_avg['release_year'],
-        y=df_avg.index,
-        mode='markers',
-        name='Avg. Release Year',
-        marker=dict(size=12, color=nflix_palette[0])
+        x=[], y=[], mode='markers',
+        marker=dict(size=12, color=nflix_palette[0]),
+        name='Ano de Lançamento'
     ))
     
     fig.add_trace(go.Scatter(
-        x=df_avg['year_added'],
-        y=df_avg.index,
-        mode='markers',
-        name='Avg. Addition Year',
-        marker=dict(size=12, color=nflix_palette[1])
+        x=[], y=[], mode='markers',
+        marker=dict(size=12, color=nflix_palette[1]),
+        name='Ano de Adição'
     ))
     
     fig.update_layout(
-        title=f'📅 {content_type}s: Release vs. Addition Year',
-        xaxis_title='Year',
-        yaxis_title='Country',
+        title=f'📅 {content_type}: Tempo Entre Lançamento e Adição',
+        xaxis_title='Ano',
+        yaxis_title='País',
         height=600,
-        template='plotly_dark'
+        template='plotly_white',
+        legend=dict(
+            orientation='h',
+            yanchor='bottom',
+            y=1.02,
+            xanchor='center',
+            x=0.5
+        )
     )
+    return fig
+
+def plot_time_to_netflix(df):
+    df_filtered = df[df['time_to_netflix'] > 0]
+    
+    # Agrupar por ano de lançamento
+    time_by_year = df_filtered.groupby('release_year')['time_to_netflix'].mean().reset_index()
+    
+    # Agrupar por país
+    top_countries = df_filtered['first_country'].value_counts().head(10).index
+    df_country = df_filtered[df_filtered['first_country'].isin(top_countries)]
+    time_by_country = df_country.groupby('first_country')['time_to_netflix'].mean().sort_values().reset_index()
+    
+    fig = make_subplots(rows=1, cols=2, subplot_titles=(
+        '⏱️ Tempo Médio por Ano de Lançamento', 
+        '🌍 Tempo Médio por País'
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=time_by_year['release_year'],
+        y=time_by_year['time_to_netflix'],
+        mode='lines+markers',
+        name='Tempo Médio',
+        line=dict(color=nflix_palette[0], width=3),
+        marker=dict(size=8)
+    ), row=1, col=1)
+    
+    fig.add_trace(go.Bar(
+        y=time_by_country['first_country'],
+        x=time_by_country['time_to_netflix'],
+        orientation='h',
+        name='Tempo Médio',
+        marker=dict(color=nflix_palette[0])
+    ), row=1, col=2)
+    
+    fig.update_layout(
+        title='⏳ Tempo Entre Lançamento e Entrada na Netflix',
+        template='plotly_white',
+        height=500,
+        showlegend=False
+    )
+    
+    fig.update_xaxes(title_text='Anos', row=1, col=1)
+    fig.update_xaxes(title_text='Tempo (anos)', row=1, col=2)
+    fig.update_yaxes(title_text='Tempo (anos)', row=1, col=1)
+    
     return fig
 
 # --- Helper para Wordcloud ---
@@ -249,7 +348,9 @@ def generate_wordcloud(text):
         height=400, 
         background_color='black',
         colormap='Reds',
-        stopwords=STOPWORDS
+        stopwords=STOPWORDS.union({'netflix', 'series', 'movie', 'part'}),
+        min_font_size=10,
+        max_words=200
     ).generate(text)
     
     buf = io.BytesIO()
@@ -275,67 +376,153 @@ year_max = int(df['release_year'].max())
 
 # --- Layout ---
 app.layout = dbc.Container([
+    # Header
     dbc.Row([
-        dbc.Col(html.H1("🎬 Netflix Deep Analytics Dashboard", className='text-danger mb-0'), width=12),
-        dbc.Col(html.H6("Análise Avançada com Visualizações Técnicas e Insights", className='text-light mb-4'), width=12),
+        dbc.Col([
+            html.Div([
+                html.H1("📊 Netflix Analytics Dashboard", className='display-4 mb-0'),
+                html.P("Análise Avançada do Catálogo da Netflix", className='lead text-muted'),
+                html.Hr(className="my-3")
+            ], className='text-center py-4')
+        ])
     ]),
     
+    # Filtros e KPIs
     dbc.Row([
+        # Filtros
         dbc.Col([
             dbc.Card([
-                dbc.CardHeader("Filtros Avançados", className='bg-dark'),
+                dbc.CardHeader("🔍 Filtros Avançados", className='h5'),
                 dbc.CardBody([
-                    dbc.Label("Tipo de Título", className='text-light'),
-                    dcc.Dropdown(id='filter-type', options=type_options, value='Todos', className='mb-3'),
+                    dbc.FormGroup([
+                        dbc.Label("Tipo de Título"),
+                        dcc.Dropdown(
+                            id='filter-type', 
+                            options=type_options, 
+                            value='Todos',
+                            clearable=False
+                        ),
+                    ]),
                     
-                    dbc.Label("País(es)", className='text-light'),
-                    dcc.Dropdown(id='filter-country', options=country_options, multi=True, className='mb-3'),
+                    dbc.FormGroup([
+                        dbc.Label("País(es)"),
+                        dcc.Dropdown(
+                            id='filter-country', 
+                            options=country_options, 
+                            multi=True,
+                            placeholder="Selecione países..."
+                        ),
+                    ]),
                     
-                    dbc.Label("Ano de Lançamento", className='text-light'),
-                    dcc.RangeSlider(
-                        id='filter-year',
-                        min=year_min,
-                        max=year_max,
-                        value=[year_min, year_max],
-                        marks={y: str(y) for y in range(year_min, year_max+1, 5)},
-                        className='mb-4'
-                    ),
+                    dbc.FormGroup([
+                        dbc.Label("Ano de Lançamento"),
+                        dcc.RangeSlider(
+                            id='filter-year',
+                            min=year_min,
+                            max=year_max,
+                            value=[year_min, year_max],
+                            marks={y: {'label': str(y), 'style': {'transform': 'rotate(45deg)'}} 
+                                   for y in range(year_min, year_max+1, 5)},
+                            tooltip={"placement": "bottom", "always_visible": True}
+                        ),
+                    ]),
                     
-                    dbc.Button("Limpar Filtros", id="clear-filters", color="danger", size="sm", className='w-100')
-                ], className='bg-secondary')
-            ])
+                    dbc.Button(
+                        "Limpar Filtros", 
+                        id="clear-filters", 
+                        color="danger", 
+                        size="sm", 
+                        className='w-100 mt-3',
+                        outline=True
+                    )
+                ])
+            ], className='shadow-sm mb-4'),
+            
+            # KPIs
+            dbc.Card([
+                dbc.CardHeader("📊 Indicadores Chave", className='h5'),
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col(html.Div(id='kpi-total'), width=6),
+                        dbc.Col(html.Div(id='kpi-movies'), width=6),
+                    ]),
+                    dbc.Row([
+                        dbc.Col(html.Div(id='kpi-tv'), width=6),
+                        dbc.Col(html.Div(id='kpi-recent'), width=6),
+                    ]),
+                    dbc.Row([
+                        dbc.Col(html.Div(id='kpi-exclusive'), width=6),
+                        dbc.Col(html.Div(id='kpi-avg-time'), width=6),
+                    ]),
+                ])
+            ], className='shadow-sm')
         ], md=3),
         
+        # Gráficos
         dbc.Col([
             dbc.Row([
-                dbc.Col(dbc.Card(dcc.Graph(id='content-over-time'), className='mb-3'), md=6),
-                dbc.Col(dbc.Card(dcc.Graph(id='content-ratio'), className='mb-3'), md=6),
+                dbc.Col(dcc.Graph(id='content-over-time'), width=6),
+                dbc.Col(dcc.Graph(id='content-ratio'), width=6),
+            ], className='mb-4'),
+            
+            dbc.Row([
+                dbc.Col(dcc.Graph(id='country-distribution'), width=12),
+            ], className='mb-4'),
+            
+            dbc.Row([
+                dbc.Col(dcc.Graph(id='time-to-netflix'), width=12),
+            ], className='mb-4'),
+            
+            dbc.Tabs([
+                dbc.Tab(label="Linha do Tempo", children=[
+                    dbc.Row([
+                        dbc.Col(dcc.Graph(id='content-timeline'), width=12),
+                    ], className='mb-4')
+                ]),
+                dbc.Tab(label="Faixa Etária", children=[
+                    dbc.Row([
+                        dbc.Col(dcc.Graph(id='target-ages'), width=12),
+                    ], className='mb-4')
+                ]),
+                dbc.Tab(label="Lançamento vs Adição", children=[
+                    dbc.Row([
+                        dbc.Col(dcc.Graph(id='release-vs-addition-movie'), width=6),
+                        dbc.Col(dcc.Graph(id='release-vs-addition-tv'), width=6),
+                    ], className='mb-4')
+                ]),
             ]),
             
             dbc.Row([
-                dbc.Col(dbc.Card(dcc.Graph(id='country-distribution'), className='mb-3'), md=12),
-            ]),
-            
-            dbc.Row([
-                dbc.Col(dbc.Card(dcc.Graph(id='content-timeline'), className='mb-3'), md=6),
-                dbc.Col(dbc.Card(dcc.Graph(id='target-ages'), className='mb-3'), md=6),
-            ]),
-            
-            dbc.Row([
-                dbc.Col(dbc.Card(dcc.Graph(id='release-vs-addition-movie'), className='mb-3'), md=6),
-                dbc.Col(dbc.Card(dcc.Graph(id='release-vs-addition-tv'), className='mb-3'), md=6),
-            ]),
-            
-            dbc.Row([
-                dbc.Col(dbc.Card(html.Img(id='wordcloud-titles', style={'width':'100%', 'height':'300px'}), className='mb-3'),
-            ]),
-            
-            dbc.Row([
-                dbc.Col(html.Div(id='kpi-summary', className='p-3'), md=12),
+                dbc.Col(
+                    dbc.Card([
+                        dbc.CardHeader("☁️ Nuvem de Palavras dos Títulos", className='h5'),
+                        dbc.CardBody(html.Img(id='wordcloud-titles', className='img-fluid'))
+                    ], className='shadow-sm'),
+                    width=12
+                ),
             ]),
         ], md=9)
+    ]),
+    
+    # Footer
+    dbc.Row([
+        dbc.Col([
+            html.Footer([
+                html.Hr(),
+                html.P("© 2023 Netflix Analytics Dashboard | Dados: Kaggle Netflix Titles Dataset", 
+                       className='text-center text-muted small py-2')
+            ])
+        ])
     ])
-], fluid=True, className='bg-dark text-light')
+], fluid=True, className='py-3')
+
+# --- Estilos para KPIs ---
+kpi_style = {
+    'border-left': f'4px solid {nflix_palette[0]}',
+    'padding': '10px',
+    'margin-bottom': '10px',
+    'background-color': '#f8f9fa'
+}
 
 # --- Callback limpar filtros ---
 @app.callback(
@@ -348,17 +535,86 @@ app.layout = dbc.Container([
 def clear_filters(n_clicks):
     return 'Todos', [], [year_min, year_max]
 
+# --- Callback para KPIs ---
+@app.callback(
+    [Output('kpi-total', 'children'),
+     Output('kpi-movies', 'children'),
+     Output('kpi-tv', 'children'),
+     Output('kpi-recent', 'children'),
+     Output('kpi-exclusive', 'children'),
+     Output('kpi-avg-time', 'children')],
+    [Input('filter-type', 'value'),
+     Input('filter-country', 'value'),
+     Input('filter-year', 'value')]
+)
+def update_kpis(selected_type, selected_countries, year_range):
+    dff = df.copy()
+    
+    # Aplicar filtros
+    if selected_type != 'Todos':
+        dff = dff[dff['type'] == selected_type]
+    
+    if selected_countries:
+        dff = dff[dff['first_country'].isin(selected_countries)]
+    
+    dff = dff[(dff['release_year'] >= year_range[0]) & 
+              (dff['release_year'] <= year_range[1])]
+    
+    # Calcular KPIs
+    total_titles = len(dff)
+    movies_count = dff[dff['type'] == 'Movie'].shape[0]
+    tv_count = dff[dff['type'] == 'TV Show'].shape[0]
+    recent_content = dff[dff['year_added'] >= 2020].shape[0]
+    exclusive_content = dff[dff['is_exclusive']].shape[0]
+    
+    # Tempo médio para adição
+    avg_time = dff[dff['time_to_netflix'] > 0]['time_to_netflix'].mean()
+    avg_time = f"{avg_time:.1f} anos" if not pd.isna(avg_time) else "N/D"
+    
+    # Componentes KPI
+    kpi_total = dbc.Card([
+        html.H5(f"{total_titles:,}", className="card-title"),
+        html.P("Total de Títulos", className="card-text text-muted")
+    ], style=kpi_style)
+    
+    kpi_movies = dbc.Card([
+        html.H5(f"{movies_count:,}", className="card-title"),
+        html.P("Filmes", className="card-text text-muted")
+    ], style=kpi_style)
+    
+    kpi_tv = dbc.Card([
+        html.H5(f"{tv_count:,}", className="card-title"),
+        html.P("Séries", className="card-text text-muted")
+    ], style=kpi_style)
+    
+    kpi_recent = dbc.Card([
+        html.H5(f"{recent_content:,}", className="card-title"),
+        html.P("Adicionados desde 2020", className="card-text text-muted")
+    ], style=kpi_style)
+    
+    kpi_exclusive = dbc.Card([
+        html.H5(f"{exclusive_content:,}", className="card-title"),
+        html.P("Conteúdos Exclusivos", className="card-text text-muted")
+    ], style=kpi_style)
+    
+    kpi_avg_time = dbc.Card([
+        html.H5(avg_time, className="card-title"),
+        html.P("Tempo Médio para Adição", className="card-text text-muted")
+    ], style=kpi_style)
+    
+    return kpi_total, kpi_movies, kpi_tv, kpi_recent, kpi_exclusive, kpi_avg_time
+
 # --- Callback principal ---
 @app.callback(
-    [Output('kpi-summary', 'children'),
-     Output('content-over-time', 'figure'),
+    [Output('content-over-time', 'figure'),
      Output('content-ratio', 'figure'),
      Output('country-distribution', 'figure'),
      Output('content-timeline', 'figure'),
      Output('target-ages', 'figure'),
      Output('release-vs-addition-movie', 'figure'),
      Output('release-vs-addition-tv', 'figure'),
-     Output('wordcloud-titles', 'src')],
+     Output('wordcloud-titles', 'src'),
+     Output('time-to-netflix', 'figure')],
     [Input('filter-type', 'value'),
      Input('filter-country', 'value'),
      Input('filter-year', 'value')]
@@ -376,58 +632,20 @@ def update_dashboard(selected_type, selected_countries, year_range):
     dff = dff[(dff['release_year'] >= year_range[0]) & 
               (dff['release_year'] <= year_range[1])]
     
-    # KPIs
-    total_titles = len(dff)
-    movies_count = dff[dff['type'] == 'Movie'].shape[0]
-    tv_count = dff[dff['type'] == 'TV Show'].shape[0]
-    us_content = dff[dff['is_us_content']].shape[0]
-    recent_content = dff[dff['year_added'] >= 2020].shape[0]
-    
-    kpi_cards = dbc.Row([
-        dbc.Col(dbc.Card([
-            dbc.CardHeader("Total de Títulos"),
-            dbc.CardBody(html.H4(f"{total_titles:,}", className="text-danger"))
-        ], className='bg-dark'), width=3),
-        
-        dbc.Col(dbc.Card([
-            dbc.CardHeader("Filmes vs Séries"),
-            dbc.CardBody(html.H4(f"🎬 {movies_count:,} | 📺 {tv_count:,}", className="text-warning"))
-        ], className='bg-dark'), width=3),
-        
-        dbc.Col(dbc.Card([
-            dbc.CardHeader("Conteúdo Recente"),
-            dbc.CardBody(html.H4(f"{recent_content:,} (2020+)", className="text-success"))
-        ], className='bg-dark'), width=3),
-        
-        dbc.Col(dbc.Card([
-            dbc.CardHeader("Conteúdo EUA"),
-            dbc.CardBody(html.H4(f"{us_content:,}", className="text-info"))
-        ], className='bg-dark'), width=3),
-    ])
-    
     # Gráficos
     fig1 = plot_content_over_time(dff)
-    fig2 = plot_advanced_content_ratio(dff)
-    fig3 = plot_advanced_country_distribution(dff)
-    fig4 = plot_advanced_content_timeline(dff)
-    fig5 = plot_interactive_target_ages_by_country(dff)
-    fig6 = plot_release_vs_addition_interactive(dff, 'Movie')
-    fig7 = plot_release_vs_addition_interactive(dff, 'TV Show')
+    fig2 = plot_content_ratio(dff)
+    fig3 = plot_country_distribution(dff)
+    fig4 = plot_content_timeline(dff)
+    fig5 = plot_target_ages_by_country(dff)
+    fig6 = plot_release_vs_addition(dff, 'Filmes')
+    fig7 = plot_release_vs_addition(dff, 'Séries')
+    fig9 = plot_time_to_netflix(dff)
     
     # Wordcloud
     wordcloud_src = generate_wordcloud(" ".join(dff['title'].fillna('')))
     
-    return (
-        kpi_cards,
-        fig1,
-        fig2,
-        fig3,
-        fig4,
-        fig5,
-        fig6,
-        fig7,
-        wordcloud_src
-    )
+    return fig1, fig2, fig3, fig4, fig5, fig6, fig7, wordcloud_src, fig9
 
 if __name__ == '__main__':
     app.run_server(debug=True, port=8050)
