@@ -1,8 +1,20 @@
 /* Estilo visual aprimorado para Dash App Netflix */
+body {
+    background-color: #1b1b1b;
+    font-family: 'Segoe UI', sans-serif;
+    color: #f5f5f1;
+    margin: 0;
+    padding: 0;
+}
+
 h1 {
     color: #00FFAA;
     text-align: center;
     font-family: 'Segoe UI', sans-serif;
+    text-shadow: 2px 2px 4px rgba(0, 255, 170, 0.5);
+    padding: 20px 0;
+    background: linear-gradient(90deg, #221F1F 0%, #E50914 100%);
+    margin: 0;
 }
 
 label {
@@ -10,14 +22,130 @@ label {
     color: white;
     display: block;
     margin-top: 10px;
-}
-
-body {
-    background-color: #1b1b1b;
-    font-family: 'Segoe UI', sans-serif;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .Select-control {
     background-color: #333 !important;
     color: white !important;
+    border: 1px solid #00FFAA !important;
+    border-radius: 5px !important;
+    transition: all 0.3s ease !important;
+}
+
+.Select-control:hover {
+    background-color: #444 !important;
+    border-color: #E50914 !important;
+}
+
+.card {
+    background: linear-gradient(135deg, #2a2a2a, #1b1b1b);
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(229, 9, 20, 0.7);
+}
+
+.card-header {
+    background-color: #E50914;
+    color: #00FFAA;
+    font-weight: bold;
+    padding: 10px;
+    border-bottom: 1px solid #00FFAA;
+}
+
+.card-body {
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.btn {
+    background-color: #E50914;
+    color: #00FFAA;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #B20710;
+    color: #F5F5F1;
+    transform: scale(1.05);
+}
+
+.graph-container {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.graph-container .plotly-graph-div {
+    border: none !important;
+}
+
+.footer {
+    background: linear-gradient(90deg, #E50914 0%, #221F1F 100%);
+    color: #F5F5F1;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 0.9em;
+    border-top: 1px solid #00FFAA;
+}
+
+.dropdown {
+    margin-bottom: 15px;
+}
+
+.range-slider {
+    margin-top: 10px;
+    background: transparent !important;
+}
+
+.range-slider .rc-slider-handle {
+    background-color: #00FFAA !important;
+    border-color: #E50914 !important;
+    width: 14px !important;
+    height: 14px !important;
+    margin-top: -5px !important;
+}
+
+.range-slider .rc-slider-track {
+    background-color: #E50914 !important;
+}
+
+.tab-content {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.nav-tabs .nav-link {
+    color: #00FFAA;
+    background: #2a2a2a;
+    border: none;
+    border-radius: 5px 5px 0 0;
+    margin-right: 5px;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link.active {
+    background: #E50914;
+    color: #F5F5F1;
+    border-bottom: 2px solid #00FFAA;
+}
+
+.nav-tabs .nav-link:hover {
+    background: #B20710;
+    color: #F5F5F1;
 }
