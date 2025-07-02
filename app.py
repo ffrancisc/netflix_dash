@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots  # Added missing import
+from plotly.subplots import make_subplots
 import io
 import base64
 from wordcloud import WordCloud, STOPWORDS
@@ -402,47 +402,50 @@ app.layout = dbc.Container([
             dbc.Card([
                 dbc.CardHeader("🔍 Filtros Avançados", className='h5'),
                 dbc.CardBody([
-                    dbc.FormGroup([
-                        dbc.Label("Tipo de Título"),
-                        dcc.Dropdown(
-                            id='filter-type', 
-                            options=type_options, 
-                            value='Todos',
-                            clearable=False
-                        ),
-                    ]),
-                    
-                    dbc.FormGroup([
-                        dbc.Label("País(es)"),
-                        dcc.Dropdown(
-                            id='filter-country', 
-                            options=country_options, 
-                            multi=True,
-                            placeholder="Selecione países..."
-                        ),
-                    ]),
-                    
-                    dbc.FormGroup([
-                        dbc.Label("Ano de Lançamento"),
-                        dcc.RangeSlider(
-                            id='filter-year',
-                            min=year_min,
-                            max=year_max,
-                            value=[year_min, year_max],
-                            marks={y: {'label': str(y), 'style': {'transform': 'rotate(45deg)'}} 
-                                   for y in range(year_min, year_max+1, 5)},
-                            tooltip={"placement": "bottom", "always_visible": True}
-                        ),
-                    ]),
-                    
-                    dbc.Button(
-                        "Limpar Filtros", 
-                        id="clear-filters", 
-                        color="danger", 
-                        size="sm", 
-                        className='w-100 mt-3',
-                        outline=True
-                    )
+                    # Replaced FormGroup with Form
+                    dbc.Form([
+                        html.Div([
+                            dbc.Label("Tipo de Título"),
+                            dcc.Dropdown(
+                                id='filter-type', 
+                                options=type_options, 
+                                value='Todos',
+                                clearable=False
+                            ),
+                        ], className='mb-3'),
+                        
+                        html.Div([
+                            dbc.Label("País(es)"),
+                            dcc.Dropdown(
+                                id='filter-country', 
+                                options=country_options, 
+                                multi=True,
+                                placeholder="Selecione países..."
+                            ),
+                        ], className='mb-3'),
+                        
+                        html.Div([
+                            dbc.Label("Ano de Lançamento"),
+                            dcc.RangeSlider(
+                                id='filter-year',
+                                min=year_min,
+                                max=year_max,
+                                value=[year_min, year_max],
+                                marks={y: {'label': str(y), 'style': {'transform': 'rotate(45deg)'}} 
+                                       for y in range(year_min, year_max+1, 5)},
+                                tooltip={"placement": "bottom", "always_visible": True}
+                            ),
+                        ], className='mb-3'),
+                        
+                        dbc.Button(
+                            "Limpar Filtros", 
+                            id="clear-filters", 
+                            color="danger", 
+                            size="sm", 
+                            className='w-100 mt-3',
+                            outline=True
+                        )
+                    ])
                 ])
             ], className='shadow-sm mb-4'),
             
@@ -646,8 +649,8 @@ def update_dashboard(selected_type, selected_countries, year_range):
     fig3 = plot_country_distribution(dff)
     fig4 = plot_content_timeline(dff)
     fig5 = plot_target_ages_by_country(dff)
-    fig6 = plot_release_vs_addition(dff, 'Movie')  # Corrected to 'Movie'
-    fig7 = plot_release_vs_addition(dff, 'TV Show')  # Corrected to 'TV Show'
+    fig6 = plot_release_vs_addition(dff, 'Movie')
+    fig7 = plot_release_vs_addition(dff, 'TV Show')
     fig9 = plot_time_to_netflix(dff)
     
     # Wordcloud
@@ -656,4 +659,5 @@ def update_dashboard(selected_type, selected_countries, year_range):
     return fig1, fig2, fig3, fig4, fig5, fig6, fig7, wordcloud_src, fig9
 
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8050)
+    port = int(os.environ.get("PORT", 8050))
+    app.run_server(debug=False, port=port, host='0.0.0.0')
