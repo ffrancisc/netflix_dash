@@ -1,151 +1,159 @@
-/* Estilo visual aprimorado para Dash App Netflix */
+/* Estilos gerais */
 body {
-    background-color: #1b1b1b;
-    font-family: 'Segoe UI', sans-serif;
+    background-color: #121212;
     color: #f5f5f1;
-    margin: 0;
-    padding: 0;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-h1 {
-    color: #00FFAA;
-    text-align: center;
-    font-family: 'Segoe UI', sans-serif;
-    text-shadow: 2px 2px 4px rgba(0, 255, 170, 0.5);
-    padding: 20px 0;
-    background: linear-gradient(90deg, #221F1F 0%, #E50914 100%);
-    margin: 0;
+/* Container principal */
+.container-fluid {
+    padding: 20px;
 }
 
-label {
-    font-weight: bold;
-    color: white;
-    display: block;
-    margin-top: 10px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+/* Cabeçalho */
+.display-4 {
+    font-weight: 700;
+    color: #e50914 !important;
 }
 
-.Select-control {
-    background-color: #333 !important;
-    color: white !important;
-    border: 1px solid #00FFAA !important;
-    border-radius: 5px !important;
-    transition: all 0.3s ease !important;
+.lead {
+    color: #b3b3b3 !important;
 }
 
-.Select-control:hover {
-    background-color: #444 !important;
-    border-color: #E50914 !important;
-}
-
+/* Cards */
 .card {
-    background: linear-gradient(135deg, #2a2a2a, #1b1b1b);
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-    margin-bottom: 20px;
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(229, 9, 20, 0.7);
+    background-color: #1a1a1a !important;
+    border: 1px solid #333 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .card-header {
-    background-color: #E50914;
-    color: #00FFAA;
-    font-weight: bold;
-    padding: 10px;
-    border-bottom: 1px solid #00FFAA;
+    border-bottom: 1px solid #333 !important;
+    background-color: #222 !important;
+    font-weight: 600;
 }
 
-.card-body {
-    padding: 15px;
-    background-color: rgba(255, 255, 255, 0.05);
-}
-
-.btn {
-    background-color: #E50914;
-    color: #00FFAA;
-    border: none;
-    border-radius: 5px;
-    padding: 8px 16px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.btn:hover {
-    background-color: #B20710;
-    color: #F5F5F1;
-    transform: scale(1.05);
-}
-
+/* Gráficos */
 .graph-container {
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    background: rgba(255, 255, 255, 0.03);
+    background-color: #1a1a1a !important;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.graph-container .plotly-graph-div {
-    border: none !important;
-}
-
-.footer {
-    background: linear-gradient(90deg, #E50914 0%, #221F1F 100%);
-    color: #F5F5F1;
-    padding: 10px 0;
-    text-align: center;
-    font-size: 0.9em;
-    border-top: 1px solid #00FFAA;
-}
-
+/* Dropdowns */
 .dropdown {
-    margin-bottom: 15px;
+    background-color: #222 !important;
+    border: 1px solid #333 !important;
+    color: #f5f5f1 !important;
+    border-radius: 4px !important;
 }
 
-.range-slider {
-    margin-top: 10px;
-    background: transparent !important;
+.dropdown .Select-menu-outer {
+    background-color: #222 !important;
+    color: #f5f5f1 !important;
+}
+
+.dropdown .VirtualizedSelectOption {
+    background-color: #222 !important;
+    color: #f5f5f1 !important;
+}
+
+/* Slider */
+.range-slider .rc-slider-track {
+    background-color: #e50914 !important;
 }
 
 .range-slider .rc-slider-handle {
-    background-color: #00FFAA !important;
-    border-color: #E50914 !important;
-    width: 14px !important;
-    height: 14px !important;
-    margin-top: -5px !important;
+    border-color: #e50914 !important;
 }
 
-.range-slider .rc-slider-track {
-    background-color: #E50914 !important;
+.range-slider .rc-slider-dot-active {
+    border-color: #e50914 !important;
 }
 
+/* Botões */
+.btn-danger {
+    background-color: #e50914 !important;
+    border-color: #e50914 !important;
+}
+
+.btn-outline-danger {
+    color: #e50914 !important;
+    border-color: #e50914 !important;
+}
+
+.btn-outline-danger:hover {
+    background-color: #e50914 !important;
+    color: white !important;
+}
+
+/* Tabs */
 .tab-content {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
+    background-color: #1a1a1a !important;
+    border-radius: 0 0 8px 8px;
     padding: 15px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.nav-tabs .nav-link {
-    color: #00FFAA;
-    background: #2a2a2a;
-    border: none;
-    border-radius: 5px 5px 0 0;
-    margin-right: 5px;
-    transition: all 0.3s ease;
 }
 
 .nav-tabs .nav-link.active {
-    background: #E50914;
-    color: #F5F5F1;
-    border-bottom: 2px solid #00FFAA;
+    background-color: #1a1a1a !important;
+    border-color: #333 #333 #1a1a1a !important;
+    color: #e50914 !important;
+    font-weight: bold;
 }
 
-.nav-tabs .nav-link:hover {
-    background: #B20710;
-    color: #F5F5F1;
+.nav-tabs .nav-link:not(.active) {
+    color: #b3b3b3 !important;
+}
+
+.nav-tabs {
+    border-bottom: 1px solid #333 !important;
+}
+
+/* Footer */
+.footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    color: #808080 !important;
+}
+
+/* KPIs */
+.kpi-card {
+    border-left: 4px solid #00ffaa;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #2a2a2a, #1b1b1b);
+    border-radius: 5px;
+    text-align: center;
+}
+
+.kpi-title {
+    font-size: 1.5rem;
+    color: #00ffaa !important;
+    margin-bottom: 5px;
+}
+
+.kpi-subtitle {
+    color: #b3b3b3 !important;
+    font-size: 0.9rem;
+}
+
+/* Wordcloud */
+.wordcloud-container {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .graph-container {
+        margin-bottom: 20px;
+    }
+    
+    .tab-content {
+        padding: 10px;
+    }
 }
