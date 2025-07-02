@@ -1,0 +1,23 @@
+/* Estilo visual aprimorado para Dash App Netflix */
+h1 {
+    color: #00FFAA;
+    text-align: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+label {
+    font-weight: bold;
+    color: white;
+    display: block;
+    margin-top: 10px;
+}
+
+body {
+    background-color: #1b1b1b;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.Select-control {
+    background-color: #333 !important;
+    color: white !important;
+}
