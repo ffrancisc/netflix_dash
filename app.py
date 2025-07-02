@@ -14,7 +14,7 @@ import os
 
 # --- Configurações ---
 app = dash.Dash(__name__, 
-                external_stylesheets=[dbc.themes.LUX],
+                external_stylesheets=[dbc.themes.LUX, 'assets/style.css'],
                 meta_tags=[{'name': 'viewport', 
                            'content': 'width=device-width, initial-scale=1.0'}])
 server = app.server
