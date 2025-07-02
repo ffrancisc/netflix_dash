@@ -5,6 +5,9 @@ numpy==1.23.5
 plotly==5.22.0
 wordcloud==1.8.2.2
 matplotlib==3.7.1
+Pillow==10.1.0
+gunicorn==21.2.0
+setuptools==68.2.2
 
 
 
