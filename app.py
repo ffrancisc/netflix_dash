@@ -84,7 +84,8 @@ def clean_data(df):
     df_clean['target_age'] = df_clean['rating'].map(ratings_map).fillna('Unknown')
     
     # Gêneros e características de conteúdo
-    df_clean['genres'] = df_clean['listed_in'].str.split(', ').fillna(['Unknown'])
+    df_clean['listed_in'] = df_clean['listed_in'].fillna('Unknown')  # Substitui NaN por 'Unknown' antes de split
+    df_clean['genres'] = df_clean['listed_in'].str.split(', ')  # Divide em lista de gêneros
     df_clean['main_genre'] = df_clean['genres'].apply(lambda x: x[0] if isinstance(x, list) and x else 'Unknown')
     
     # Duração e tempo para adição
@@ -423,11 +424,12 @@ app.layout = dbc.Container([
 # --- Estilos para KPIs ---
 kpi_style = {
     'border-left': f'4px solid {nflix_palette[4]}',
-    'padding': '10px',
-    'margin-bottom': '10px',
+    'padding': '15px',
+    'margin-bottom': '15px',
     'background': 'linear-gradient(135deg, #2a2a2a, #1b1b1b)',
-    'border-radius': '5px',
-    'text-align': 'center'
+    'border-radius': '8px',
+    'text-align': 'center',
+    'transition': 'transform 0.3s ease, box-shadow 0.3s ease'
 }
 
 # --- Callback limpar filtros ---
