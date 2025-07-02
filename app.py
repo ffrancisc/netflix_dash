@@ -11,7 +11,14 @@ server = app.server
 # Carregamento de dados
 df = pd.read_csv('data/netflix_titles.csv')
 df['release_year'] = df['release_year'].astype(int)
-df['duration'] = df['duration'].str.replace(' min', '').str.replace(' Season', '').str.replace('s', '', regex=False)
+
+# Tratamento do campo duration
+df['duration'] = (
+    df['duration']
+    .str.replace(' min', '', regex=True)
+    .str.replace(' Season', '', regex=True)
+    .str.replace('s', '', regex=False)
+)
 df['duration'] = pd.to_numeric(df['duration'], errors='coerce')
 
 # Layout
@@ -127,4 +134,4 @@ def update_map_chart(selected_type, selected_countries):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False, host='0.0.0.0', port=8050)
