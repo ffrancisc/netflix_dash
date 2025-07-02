@@ -87,14 +87,13 @@ def clean_data(df):
     
     return df_clean
 
-# --- Funções de visualização (corrigidas) ---
+# --- Funções de visualização ---
 def plot_content_over_time(df):
     if df.empty:
         return empty_figure()
     
     data = df.groupby(['year_added', 'type']).size().reset_index(name='count')
     
-    # Verificar se há dados suficientes
     if len(data) < 1:
         return empty_figure()
     
@@ -104,7 +103,7 @@ def plot_content_over_time(df):
         y='count', 
         color='type',
         title='📈 Evolução de Títulos Adicionados',
-        color_discrete_sequence=[nflix_palette[0],  # Usar apenas uma cor
+        color_discrete_sequence=[nflix_palette[0]],  # Usar apenas uma cor
         labels={'year_added': 'Ano', 'count': 'Total'},
         template='plotly_dark'
     )
@@ -142,6 +141,7 @@ def plot_content_ratio(df):
         textposition='inside', 
         textinfo='percent+label',
         marker=dict(line=dict(color=nflix_palette[4], width=2))
+    )
     
     fig.update_layout(
         title='🎬 Distribuição de Conteúdo',
@@ -158,7 +158,6 @@ def plot_country_distribution(df, top_n=10):
     
     country_counts = df['first_country'].value_counts().nlargest(top_n).sort_values(ascending=True)
     
-    # Verificar se há dados suficientes
     if len(country_counts) < 1:
         return empty_figure()
     
@@ -185,7 +184,6 @@ def plot_content_timeline(df):
     if df.empty:
         return empty_figure()
     
-    # Agrupamento seguro
     timeline = df.groupby(['year_added', 'type']).size().unstack(fill_value=0).cumsum()
     
     fig = go.Figure()
@@ -224,7 +222,6 @@ def plot_target_ages_by_country(df):
     top_countries = df['first_country'].value_counts().head(10).index.tolist()
     df_heatmap = df[df['first_country'].isin(top_countries)]
     
-    # Verificar dados após filtro
     if df_heatmap.empty:
         return empty_figure()
     
@@ -234,7 +231,6 @@ def plot_target_ages_by_country(df):
         normalize='columns'
     )
     
-    # Ordenar categorias
     age_order = ['Kids', 'Older Kids', 'Teens', 'Adults']
     heatmap_data = heatmap_data.reindex([a for a in age_order if a in heatmap_data.index])
     
@@ -278,7 +274,6 @@ def plot_release_vs_addition(df, content_type='Movie'):
     
     fig = go.Figure()
     
-    # Adicionar linhas de conexão
     for idx, row in df_avg.iterrows():
         fig.add_trace(go.Scatter(
             x=[row['release_year'], row['year_added']],
@@ -288,7 +283,6 @@ def plot_release_vs_addition(df, content_type='Movie'):
             showlegend=False
         ))
     
-    # Adicionar marcadores de lançamento
     fig.add_trace(go.Scatter(
         x=df_avg['release_year'],
         y=df_avg.index,
@@ -298,7 +292,6 @@ def plot_release_vs_addition(df, content_type='Movie'):
         hovertemplate='País: %{y}<br>Ano: %{x}'
     ))
     
-    # Adicionar marcadores de adição
     fig.add_trace(go.Scatter(
         x=df_avg['year_added'],
         y=df_avg.index,
@@ -329,13 +322,11 @@ def plot_time_to_netflix(df):
     if df.empty:
         return empty_figure()
     
-    # Filtrar apenas registros válidos
     df_filtered = df[df['time_to_netflix'] > 0]
     
     if df_filtered.empty:
         return empty_figure("Sem dados de tempo para adição")
     
-    # Dados para os gráficos
     time_by_year = df_filtered.groupby('release_year')['time_to_netflix'].mean().reset_index()
     top_countries = df_filtered['first_country'].value_counts().head(10).index
     df_country = df_filtered[df_filtered['first_country'].isin(top_countries)]
@@ -347,7 +338,6 @@ def plot_time_to_netflix(df):
         subplot_titles=('⏱️ Tempo Médio por Ano', '🌍 Tempo Médio por País')
     )
     
-    # Gráfico 1: Por ano
     fig.add_trace(
         go.Scatter(
             x=time_by_year['release_year'], 
@@ -360,7 +350,6 @@ def plot_time_to_netflix(df):
         row=1, col=1
     )
     
-    # Gráfico 2: Por país
     fig.add_trace(
         go.Bar(
             y=time_by_country['first_country'], 
@@ -390,7 +379,6 @@ def plot_time_to_netflix(df):
 def generate_wordcloud(text):
     """Gera wordcloud com tratamento para textos vazios"""
     if not text.strip():
-        # Retorna imagem transparente se não houver texto
         return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
     
     wordcloud = WordCloud(
@@ -420,7 +408,6 @@ try:
     print("Dados carregados com sucesso!")
 except Exception as e:
     print(f"Erro ao carregar dados: {e}")
-    # Criar DataFrame vazio para evitar erros
     df = pd.DataFrame(columns=['type', 'country', 'release_year', 'date_added'])
 
 # --- Opções dropdown ---
@@ -610,12 +597,10 @@ def update_kpis(selected_type, selected_countries, year_range):
         recent_content = dff[dff['year_added'] >= 2020].shape[0]
         exclusive_content = dff[dff['is_exclusive']].shape[0]
         
-        # Calcular tempo médio com tratamento de erro
         time_filtered = dff[dff['time_to_netflix'] > 0]['time_to_netflix']
         avg_time = time_filtered.mean() if not time_filtered.empty else 0
         avg_time = f"{avg_time:.1f} anos" if not pd.isna(avg_time) else "N/D"
         
-        # Criar cards de KPI
         kpi_total = dbc.Card([
             html.H5(f"{total_titles:,}", className="card-title", style={'color': nflix_palette[4]}),
             html.P("Total de Títulos", className="card-text text-light")
@@ -649,7 +634,6 @@ def update_kpis(selected_type, selected_countries, year_range):
         return kpi_total, kpi_movies, kpi_tv, kpi_recent, kpi_exclusive, kpi_avg_time
     
     except Exception as e:
-        # Retornar KPIs de erro em caso de falha
         error_kpi = dbc.Card([
             html.H5("Erro", className="card-title text-danger"),
             html.P(str(e), className="card-text text-light")
@@ -685,6 +669,7 @@ def update_dashboard(selected_type, selected_countries, year_range):
         dff = dff[
             (dff['release_year'] >= year_range[0]) & 
             (dff['release_year'] <= year_range[1])
+        ]
         
         # Gerar visualizações
         fig1 = plot_content_over_time(dff)
@@ -703,7 +688,6 @@ def update_dashboard(selected_type, selected_countries, year_range):
         return fig1, fig2, fig3, fig4, fig5, fig6, fig7, wordcloud_src, fig9
     
     except Exception as e:
-        # Retornar figuras vazias em caso de erro
         error_fig = empty_figure(f"Erro: {str(e)}")
         return [error_fig] * 8 + [generate_wordcloud("")]
 
